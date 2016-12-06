@@ -1,0 +1,6 @@
+---
+- name: deploy springboot service
+  hosts: all
+  serial: 1
+  become: true
+  become_user: root
