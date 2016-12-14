@@ -1,0 +1,12 @@
+---
+spring_home: /opt/springboot-first
+
+nexus_url: http://511acd5b.ngrok.io
+nexus_repository: snapshots
+nexus_group_id: com/example
+nexus_artifact_id: springboot-first
+nexus_version: 1.0-SNAPSHOT
+
+service_path: /etc/init.d/springboot-first/
+
+app_ctx_path: /springboot-first

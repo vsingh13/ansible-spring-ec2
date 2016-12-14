@@ -1,0 +1,51 @@
+---
+- name: check if springboot application is already installed
+  stat: path={{ service_path }}
+  register: service_installed
+
+- name: set 'springboot application is already installed' fact
+  set_fact: is_service_installed={{ service_installed.stat.exists | default ("False") }}
+  when: service_installed is defined
+
+- name: Creates directory
+  file: path=/opt/springboot state=directory
+
+- name: download spring artifact from nexus
+  get_url:
+    url: "{{ nexus_url }}/nexus/content/repositories/{{ nexus_repository }}/{{ nexus_group_id }}/{{ nexus_artifact_id }}/{{nexus_version}}"
+    dest: /opt/springboot/springboot-first-1.0-20161212.170112-4.jar
+    url_username: admin
+    url_password: admin123
+
+- name: Check jar existence
+  stat: path=/opt/springboot
+  register: jar_dir
+
+- fail: msg="jar not found"
+  when: jar_dir.stat.exists == False
+
+- name: rename the services
+  command: mv /springboot-first-1.0-20161212.170112-4.jar /springboot-first.jar
+
+- name: stop springboot app
+  service: name=springboot-first state=stopped
+  when: is_service_installed | default (False) | bool
+
+- name: install springboot-first
+  command: mv /springboot-first.jar {{ home_path }}
+
+- name: setup springboot app
+  file:
+    src: "{{ home_path }}/springboot-first.jar"
+    dest: "{{ service_path }}"
+    state: link
+
+- name: start springboot app
+  service: name=springboot-first state=started enabled=yes
+
+- name: ensure springboot application is running
+  uri: url=http://localhost:8080/
+  register: springboot
+  until: springboot.status == 200
+  retries: 9
+  delay: 10
